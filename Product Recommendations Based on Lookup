@@ -1,0 +1,70 @@
+%%[
+SET @HolidayQuizTitle1 = AttributeValue("HolidayQuizTitle1")
+SET @HolidayQuizTitle2 = AttributeValue("HolidayQuizTitle2")
+SET @HolidayQuizTitle3 = AttributeValue("HolidayQuizTitle3")
+SET @HolidayQuizTitle4 = AttributeValue("HolidayQuizTitle4")
+
+SET @HolidayQuizTitles = BuildRowsetFromString(CONCAT(@HolidayQuizTitle1, ",", @HolidayQuizTitle2, ",", @HolidayQuizTitle3, ",", @HolidayQuizTitle4), ",")
+
+FOR @i = 1 TO RowCount(@HolidayQuizTitles) DO
+    SET @currentQuizTitleRow = Row(@HolidayQuizTitles, @i)
+    SET @currentQuizTitle = Field(@currentQuizTitleRow, 1)
+
+    SET @ProductLookup = LookupRows("Jebbit_ProductFeed", "Title", @currentQuizTitle)
+
+    IF RowCount(@ProductLookup) > 0 THEN
+        FOR @j = 1 TO RowCount(@ProductLookup) DO
+            SET @ProductRow = Row(@ProductLookup, @j)
+            SET @product_id = Field(@ProductRow, "ID")
+            SET @product_name = Field(@ProductRow, "Title")
+            SET @product_url = Field(@ProductRow, "Redirect_URL")
+            SET @product_image = Field(@ProductRow, "Image_URL")
+]%%
+    
+<table align="center" border="0" cellpadding="0" cellspacing="0" class="row row-3" role="presentation" style="mso-table-lspace: 0pt; mso-table-rspace: 0pt;" width="100%">
+
+<tr>
+<td>
+<table align="center" border="0" cellpadding="0" cellspacing="0" class="row-content stack" role="presentation" style="mso-table-lspace: 0pt; mso-table-rspace: 0pt; background-color: #ffffff; color: #000000; width: 500px; border-top: 10px solid white" width="500">
+
+<tr>
+<th class="column column-1 mobile-width" style="mso-table-lspace: 0pt; mso-table-rspace: 0pt; font-weight: 400; text-align: center; vertical-align: top; border-top: 0px; border-right: 0px; border-bottom: 0px; border-left: 0px;" width="38%">
+<table border="0" cellpadding="0" cellspacing="0" class="image_block" role="presentation" style="mso-table-lspace: 0pt; mso-table-rspace: 0pt;" width="100%">
+<tr>
+<td style="width:100%;padding-right:0px;padding-left:60px;padding-top:10px;padding-bottom:0px; text-align:center; " align="center" class="mobileborder">
+<div align="center" style="line-height:10px"><a href="%%=RedirectTo(@product_url)=%%" conversion="true" style="outline:none" tabindex="-1" target="_blank"><img alt="Product" src="%%=v(@product_image)=%%" style="display: block; height: 100; border: 0; width: 100px; max-width: 100%;" title="Product" width="100"></a></div>
+</td>
+</tr>
+</table>
+</th>
+<th class="column column-2" style="mso-table-lspace: 0pt; mso-table-rspace: 0pt; font-weight: 400; text-align: center; vertical-align: top; padding-left: 30px; padding-right: 10px; border-top: 0px; border-right: 0px; border-bottom: 0px; border-left: 0px;" width="72%">
+<table border="0" cellpadding="0" cellspacing="0" class="text_block" role="presentation" style="mso-table-lspace: 0pt; mso-table-rspace: 0pt; word-break: break-word;" width="100%">
+<tr>
+<td style="padding-left:10px;padding-right:40px;padding-top:15px;">
+<div style="font-family: Verdana, sans-serif">
+<div style="font-size: 12px; font-family:'NarzissTextRegular-Italic', Georgia,serif; mso-line-height-alt: 14.399999999999999px; color: black; line-height: 1.2;" class="mobile-text">
+  <p style="margin: 0; font-size: 12px; text-align: left; letter-spacing: 1px;" class="mobile-text"><span style="font-size:16px;">%%=v(@product_name)=%% <br></span></p><p style="margin: 0; font-size: 12px; text-align: left; letter-spacing: 1px;" class="mobile-text"><span style="font-size:12px;">Item # %%=v(@product_id)=%%</span></p><p></p>
+</div>
+  
+</div>
+</td>
+</tr>
+</table>
+
+
+
+</th>
+</tr>
+
+</table>
+</td>
+</tr>
+
+</table>
+
+%%[
+        NEXT @j
+    ENDIF
+NEXT @i
+]%%
+
