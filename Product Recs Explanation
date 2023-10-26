@@ -1,0 +1,101 @@
+Here's a breakdown of the code :
+
+---
+
+### 1. Setting up Variables
+```AMPscript
+%%[
+SET @HolidayQuizTitle1 = AttributeValue("HolidayQuizTitle1")
+...
+SET @HolidayQuizTitle4 = AttributeValue("HolidayQuizTitle4")
+]%%
+```
+- This section sets up four variables (`@HolidayQuizTitle1` to `@HolidayQuizTitle4`). Each one is pulling a value from the subscriber data using `AttributeValue()`.
+
+---
+
+### 2. Constructing the Array
+```AMPscript
+SET @HolidayQuizTitles = BuildRowsetFromString(CONCAT(@HolidayQuizTitle1, ",", @HolidayQuizTitle2, ...), ",")
+]%%
+```
+- Here, it's combining the four title variables into a comma-separated string.
+- Then, it turns this string into a rowset (similar to an array) using `BuildRowsetFromString()`.
+
+---
+
+### 3. Looping through Quiz Titles
+```AMPscript
+FOR @i = 1 TO RowCount(@HolidayQuizTitles) DO
+...
+NEXT @i
+]%%
+```
+- A loop that goes through each of the quiz titles in `@HolidayQuizTitles`.
+
+---
+
+### 4. Product Lookup
+```AMPscript
+SET @currentQuizTitle = Field(@currentQuizTitleRow, 1)
+SET @ProductLookup = LookupRows("Jebbit_ProductFeed", "Title", @currentQuizTitle)
+]%%
+```
+- For the current quiz title, it looks up related products in the `Jebbit_ProductFeed` data extension using `LookupRows()`.
+
+---
+
+### 5. Looping through Products
+```AMPscript
+IF RowCount(@ProductLookup) > 0 THEN
+    FOR @j = 1 TO RowCount(@ProductLookup) DO
+    ...
+    NEXT @j
+ENDIF
+]%%
+```
+- If there are any products that match the current quiz title, loop through each product.
+
+---
+
+### 6. Fetching Product Details
+```AMPscript
+SET @ProductRow = Row(@ProductLookup, @j)
+...
+SET @product_image = Field(@ProductRow, "Image_URL")
+]%%
+```
+- This section extracts product details from the `Jebbit_ProductFeed` data extension. This includes product ID, name, redirect URL, and image URL.
+
+---
+
+### 7. Constructing the HTML Table for Product
+```HTML
+<table ...>
+...
+</table>
+```
+- A table is built for each product. 
+- It contains:
+  - Product image with a link to the product's URL.
+  - Product name.
+  - Product ID.
+- Uses `%%=RedirectTo(@product_url)=%%` and `%%=v(@product_name)=%%` to embed the AMPscript variables into the HTML.
+
+---
+
+### Guidelines for Future Modifications:
+
+1. **Add More Quiz Titles**: If you need more quiz titles, simply create more variables like `@HolidayQuizTitle5`, `@HolidayQuizTitle6`, etc. and update the `BuildRowsetFromString()` function.
+
+2. **Modify Data Extension Lookup**: If you need to lookup in a different data extension or using a different field, adjust the `LookupRows()` function accordingly.
+
+3. **Change Product Details Displayed**: Adjust the table structure and variables inside the HTML to display different product details or styles.
+
+4. **Other Data Extensions**: If you want to use another data extension, change the name inside the `LookupRows()` function.
+
+5. **Change Display Styles**: Modify the CSS inside the table tags to change the appearance.
+
+---
+
+Remember: Any modification in the logic part (like adding more quiz titles or looking up in a different data extension) requires a corresponding adjustment in the loop and display part of the code.
