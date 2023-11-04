@@ -1,0 +1,25 @@
+%%[
+        
+       
+        /* Determine if the SubscriberKey is for a Lead or Contact based on ID prefix */
+        SET @prefix = Substring(@subscriberKey, 1, 3)
+
+        IF @prefix == "00Q" THEN
+            /* Update Leads */
+            SET @leadResult = UpdateSingleSalesforceObject(
+                "Lead", 
+                @subscriberKey, 
+                "MarketableLastModifiedDate__c", @lastModifiedDate, 
+                "Marketable__c", @marketable
+            )
+        ELSEIF @prefix == "003" THEN
+            /* Update Contacts */
+            SET @contactResult = UpdateSingleSalesforceObject(
+                "Contact", 
+                @subscriberKey, 
+                "MarketableLastModifiedDate__c", @lastModifiedDate, 
+                "Marketable__c", @marketable
+            )
+        ENDIF
+  
+]%%
