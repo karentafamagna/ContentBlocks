@@ -1,0 +1,66 @@
+/*Retrieve all records from the "Custom Preference Center" Data Extension where the status is "Unsubscribed".
+For each record, use the email address to find all matching subscribers and set their status to "Unsubscribed".
+
+In this script:
+
+We use prox.retrieve to get all the records from "Custom Preference Center" where the status is "Unsubscribed".
+For each record, we retrieve the subscriber(s) with that email address and update their status to "Unsubscribed".
+*/
+<script runat="server"> 
+Platform.Load("core", "1");
+
+var prox = new Script.Util.WSProxy();
+
+// Define the Data Extension name
+var deName = "Custom Preference Center";
+
+// Retrieve all records from the DE where status is 'Unsubscribed'
+var deFilter = {
+    Property: "Status",
+    SimpleOperator: "equals",
+    Value: "Unsubscribed"
+};
+var dataExtensionResults = prox.retrieve("DataExtensionObject[" + deName + "]", ["EmailAddress"], deFilter);
+
+if (dataExtensionResults && dataExtensionResults.Results && dataExtensionResults.Results.length > 0) {
+    // Loop over the results to unsubscribe each email address
+    for (var i = 0; i < dataExtensionResults.Results.length; i++) {
+        var emailAddress = dataExtensionResults.Results[i].Properties[0].Value;
+
+        // Define a filter to retrieve subscribers with the matching email address
+        var subscriberFilter = {
+            Property: "EmailAddress",
+            SimpleOperator: "equals",
+            Value: emailAddress
+        };
+        
+        // Retrieve subscribers with the provided email address
+        var subscribers = prox.retrieve("Subscriber", ["SubscriberKey", "EmailAddress"], subscriberFilter);
+
+        if (subscribers && subscribers.Results && subscribers.Results.length > 0) {
+            // Loop over the results to update each subscriber's status to 'Unsubscribed'
+            for (var j = 0; j < subscribers.Results.length; j++) {
+                var subscriberKey = subscribers.Results[j].SubscriberKey;
+                
+                var subscriberJson = {
+                    "SubscriberKey": subscriberKey,
+                    "EmailAddress": emailAddress,
+                    "Status": "Unsubscribed"
+                };
+                
+                var options = {
+                    SaveOptions: [{
+                        PropertyName: "*",
+                        SaveAction: "UpdateAdd"
+                    }]
+                };
+                
+                // Unsubscribe each subscriber
+                var resp = prox.updateItem("Subscriber", subscriberJson, options);
+            }
+        }
+
+</script>
+    }
+}
+// No else part is needed if you are sure there will always be records
