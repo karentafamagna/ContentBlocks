@@ -1,0 +1,61 @@
+%%[
+SET @subKey = [_subscriberkey]
+
+IF NOT EMPTY(RequestParameter('email'))
+THEN SET @email = RequestParameter('email')
+ELSE SET @email = [emailaddr] ENDIF
+
+]%%
+
+<script runat="server">
+Platform.Load("core", "1");
+
+var prox = new Script.Util.WSProxy();
+
+// Retrieve all 'Unsubscribed' records from the Data Extension
+var deName = "Custom Preference Center";
+var deFilter = {
+    Property: "Status",
+    SimpleOperator: "equals",
+    Value: "Unsubscribed"
+};
+var cols = ["EmailAddress"]; // Adjust this if you have different column names
+var deResults = prox.retrieve("DataExtensionObject[" + deName + "]", cols, deFilter);
+
+// Initialize a counter for the total number of matching active records
+var totalActiveMatches = 0;
+
+if (deResults && deResults.Results && deResults.Results.length > 0) {
+    // Loop through the results and check if there is an active Subscriber with the same EmailAddress
+    for (var i = 0; i < deResults.Results.length; i++) {
+        var emailAddress = deResults.Results[i].Properties[0].Value;
+
+        // Retrieve 'Active' Subscriber records where SubscriberKey is equal to the EmailAddress
+        var subFilter = {
+            LeftOperand: {
+                Property: "SubscriberKey",
+                SimpleOperator: "equals",
+                Value: emailAddress
+            },
+            LogicalOperator: "AND",
+            RightOperand: {
+                Property: "Status",
+                SimpleOperator: "equals",
+                Value: "Active"
+            }
+        };
+        
+        var subResults = prox.retrieve("Subscriber", ["SubscriberKey", "EmailAddress", "Status"], subFilter);
+
+        // If there are active subscribers with the same email, count them
+        if (subResults && subResults.Results && subResults.Results.length > 0) {
+            totalActiveMatches += subResults.Results.length;
+        }
+    }
+}
+
+// Print out the total count of matching active records
+Write("<br>Total count of 'Active' subscribers matching 'Unsubscribed' records in DE: " + totalActiveMatches);
+
+
+                                            </script>
