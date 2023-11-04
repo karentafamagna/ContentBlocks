@@ -5,9 +5,10 @@
         SET @row = Row(@rows, @i)
         
         SET @subscriberKey = Field(@row,"SubscriberKey")
-        SET @lastModifiedDate = Field(@row,"LastModifiedDate")
         SET @status = Field(@row,"Status")
-        
+        SET @date = Field(@row,"LastModifiedDate")
+       SET @lastModifiedDate = FormatDate(@date,"iso")
+
         IF @status == "Unsubscribed" THEN
             SET @marketable = "false"
         ELSE
